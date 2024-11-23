@@ -2,9 +2,10 @@ import React from "react";
 
 function Cards({ item }) {
   return (
+    
     <>
       <div className="mt-4 my-3">
-        <div className="card w-92 bg-base-100 w-96 shadow-xl">
+        <div className="card w-92 bg-base-100 w-96 shadow-xl hover:scale-105 duration-200 dark:bg-slate-900 dark:text-white">
           <figure>
             <img
               src={item.image}
@@ -19,7 +20,7 @@ function Cards({ item }) {
             <p>{item.title}</p>
             <div className="card-actions justify-between">
               <div className="badge badge-outline">${item.price}</div>
-              <div className="cursor-pointer px-3 py-4 badge badge-outline hover:bg-rose-500 hover:text-white duration-200">Buy Now</div>
+              <div className="cursor-pointer px-3 py-4 rounded-none badge badge-outline hover:bg-rose-500 hover:text-white duration-200">Buy Now</div>
             </div>
           </div>
         </div>
