@@ -1,16 +1,27 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "./Navbar";
+import axios from "axios";
 
 export default function RegisterForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
     // Handle registration logic here
-    console.log("Registration attempt with:", { name, email, password });
+    console.log("Registration attempt with:", { name, email, password }); 
+    await axios.post("http://localhost:4001/user/signup", { fullname:name, email, password })
+    .then((res)=>{
+      console.log(res.data)
+      if(res.data){
+        alert("Registration Successful")
+      }
+    }).catch((err)=>{
+      console.log(err)
+      alert("Error:" + err)
+    })
   };
 
   return (
