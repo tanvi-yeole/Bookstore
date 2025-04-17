@@ -12,7 +12,7 @@ export default function RegisterForm() {
     e.preventDefault();
     // Handle registration logic here
     console.log("Registration attempt with:", { name, email, password }); 
-    await axios.post("http://localhost:4001/user/signup", { fullname:name, email, password })
+    await axios.post(`${import.meta.env.VITE_API_URL}/user/signup`, { fullname:name, email, password })
     .then((res)=>{
       console.log(res.data)
       if(res.data){

@@ -1,15 +1,26 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, redirect } from "react-router-dom";
 import Navbar from "./Navbar";
+import axios from "axios";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle login logic here
     console.log("Login attempt with:", { email, password });
+    await axios.post(`${import.meta.env.VITE_API_URL}/user/login`, { email, password })
+    .then((res)=>{
+      console.log(res.data)
+      if(res.data){
+        alert("Login Successful")
+      }
+      redirect("/")
+    }).catch((err)=>{
+      console.log(err)
+      alert("Error:" + err)
+    })
   };
 
   return (
