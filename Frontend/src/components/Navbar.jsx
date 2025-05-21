@@ -1,11 +1,46 @@
-import React, { useEffect } from "react";
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { RxCross2 } from "react-icons/rx";
+import { AiOutlineShoppingCart } from "react-icons/ai";
+import { RiDeleteBin7Line } from "react-icons/ri";
 
 function Navbar() {
   const [theme, setTheme] = useState(
-    localStorage.getItem("theme") ? localStorage.getItem("theme") : "light"
+    localStorage.getItem("theme") || "light"
   );
+  const [token, setToken] = useState(localStorage.getItem("token") || null);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cartItems, setCartItems] = useState([]);
+  const [sticky, setSticky] = useState(false);
+
+  // Load from localStorage when Navbar mounts
+  useEffect(() => {
+    const items = JSON.parse(localStorage.getItem("cart")) || [];
+    setCartItems(items);
+  }, []);
+
+  // Listen for "cartUpdated" to refresh cart instantly
+  useEffect(() => {
+    function syncCart() {
+      const items = JSON.parse(localStorage.getItem("cart")) || [];
+      setCartItems(items);
+    }
+    window.addEventListener("cartUpdated", syncCart);
+    return () => window.removeEventListener("cartUpdated", syncCart);
+  }, []);
+
+  const handleCartOpen = () => {
+    setCartOpen(!cartOpen);
+  };
+
+  const handleRemoveItem = (index) => {
+    const updated = [...cartItems];
+    updated.splice(index, 1);
+    setCartItems(updated);
+    localStorage.setItem("cart", JSON.stringify(updated));
+  };
+
+  // Theme toggle
   const element = document.documentElement;
   useEffect(() => {
     if (theme === "dark") {
@@ -19,45 +54,32 @@ function Navbar() {
     }
   }, [theme]);
 
-  const [sticky, setSticky] = useState(false);
+  // Sticky Navbar on scroll
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 0) {
-        setSticky(true);
-      } else {
-        setSticky(false);
-      }
+      setSticky(window.scrollY > 0);
     };
     window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const navItems = (
     <>
-      <li>
-        <a href="/">Home</a>
-      </li>
-      <li>
-        <a href="/course">Course</a>
-      </li>
-      <li>
-        <a>Contact</a>
-      </li>
-      <li>
-        <a>About</a>
-      </li>
+      <li><a href="/">Home</a></li>
+      <li><a href="/course">Course</a></li>
+      <li><a>Contact</a></li>
+      <li><a>About</a></li>
     </>
   );
+
   return (
     <>
+      {/* Navbar Container */}
       <div
-        className={`max-w-screen-2xl container mx-auto md:px-14 px-4 dark:bg-slate-800 dark:text-white fixed top-0 left-0 right-0 z-50 ${
-          sticky
-            ? "sticky-navbar shadow-md bg-base-200  dark:bg-slate-700 dark:text-white duration-300 transition-all ease-in-out"
+        className={`max-w-screen-2xl container mx-auto md:px-14 px-4 bg-white text-slate-800 dark:bg-slate-800 dark:text-white fixed top-0 left-0 right-0 z-50 ${sticky
+            ? "sticky-navbar shadow-md bg-white text-slate-800 dark:bg-slate-700 dark:text-white duration-300 transition-all ease-in-out"
             : ""
-        }`}
+          }`}
       >
         <div className="navbar">
           <div className="navbar-start">
@@ -89,7 +111,7 @@ function Navbar() {
                 {navItems}
               </ul>
             </div>
-            <a className="btn btn-ghost text-xl">Bookstore</a>
+            <a className="btn btn-ghost text-xl">WordWave</a>
           </div>
           <div className="navbar-end space-x-3">
             <div className="navbar-center hidden lg:flex">
@@ -99,21 +121,9 @@ function Navbar() {
               <label className="px-3 py-2 border rounded-md flex items-center gap-2">
                 <input
                   type="text"
-                  className="grow outline-none"
+                  className="grow outline-none bg-transparent"
                   placeholder="Search"
                 />
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 16 16"
-                  fill="currentColor"
-                  className="h-4 w-4 opacity-70"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z"
-                    clipRule="evenodd"
-                  />
-                </svg>
               </label>
             </div>
             <label className="swap swap-rotate">
@@ -144,15 +154,86 @@ function Navbar() {
                 <path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z" />
               </svg>
             </label>
-            <div className="navbar-end">
-              <Link
-                className="bg-black text-white px-3 py-2 rounded-md hover:bg-slate-800 duration-300 cursor-pointer"
-                to="/login"
+            {token && (
+              <button
+                className="relative dark:text-white px-3 py-2 rounded-md hover:text-white hover:bg-slate-800 duration-300 cursor-pointer"
+                onClick={handleCartOpen}
               >
-                Login
-              </Link>
+                <AiOutlineShoppingCart size={24} />
+                {cartItems.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs px-2 rounded-full">
+                    {cartItems.length}
+                  </span>
+                )}
+              </button>
+            )}
+            <div className="navbar-end">
+              {token ? (
+                <Link
+                  className="bg-black text-white px-3 py-2 rounded-md hover:bg-slate-800 duration-300 cursor-pointer"
+                  onClick={() => {
+                    localStorage.removeItem("token");
+                    setToken(null);
+                    window.location.reload();
+                  }}
+                >
+                  Logout
+                </Link>
+              ) : (
+                <Link
+                  className="bg-black text-white px-3 py-2 rounded-md hover:bg-slate-800 duration-300 cursor-pointer"
+                  to="/login"
+                >
+                  Login
+                </Link>
+              )}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Cart Drawer with animation */}
+      <div
+        className={`fixed inset-0 z-50 transition-opacity duration-300 ${cartOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+      >
+        {/* Overlay with fade-in/out */}
+        <div
+          className="bg-black bg-opacity-40 w-full h-full"
+          onClick={() => setCartOpen(false)}
+        />
+
+        {/* Slide-in panel */}
+        <div
+          className={`absolute right-0 top-0 h-full w-80 bg-white dark:bg-slate-800 dark:text-white p-4 transform transition-transform duration-300 ease-in-out ${cartOpen ? "translate-x-0" : "translate-x-full"} `}
+        >
+          {/* Close Icon at top right */}
+          <button
+            className="absolute right-4 top-4 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+            onClick={() => setCartOpen(false)}
+          >
+            <RxCross2 size={24} />
+          </button>
+
+          <h2 className="text-xl font-bold">Your Cart</h2>
+          <ul className="divide-y divide-gray-300 dark:divide-gray-600">
+            {cartItems.map((item, index) => (
+              <li
+                key={index}
+                className="py-2 flex justify-between items-center"
+              >
+                <span>
+                  {item.name} - ${item.price}
+                </span>
+                <button
+                  className="px-2 py-1 text-red-600 border border-red-600 rounded hover:bg-red-600 hover:text-white duration-200"
+                  onClick={() => handleRemoveItem(index)}
+                >
+                  <RiDeleteBin7Line size={24} />
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </>
